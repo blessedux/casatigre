@@ -98,6 +98,9 @@ export function AnimatedBackground() {
       // Ensure we reach the last frame when at the bottom of the page
       const frameIndex = Math.min(Math.round(scrollPercent * (numFrames - 1)), numFrames - 1);
       
+      // Apply vertical position directly to the image
+      updateImagePosition(scrollPercent);
+      
       setCurrentFrame(frameIndex);
       setDebug({
         scrollPercent: Math.round(scrollPercent * 100),
@@ -107,11 +110,45 @@ export function AnimatedBackground() {
         totalFrames: numFrames
       });
     };
+    
+    // Helper function to update image position
+    const updateImagePosition = (scrollPercent: number) => {
+      if (containerRef.current) {
+        const imageElement = containerRef.current.querySelector('img');
+        if (imageElement && window.innerWidth >= 1024) { // Only on desktop
+          // Convert scroll percent to vertical position (0% to 100%)
+          const verticalPosition = `center ${Math.round(scrollPercent * 100)}%`;
+          imageElement.style.objectPosition = verticalPosition;
+        }
+      }
+    };
+    
+    // Handle window resize
+    const handleResize = () => {
+      // Get current scroll percentage and update image position
+      const scrollTop = window.scrollY;
+      const docHeight = Math.max(
+        document.body.scrollHeight, 
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight, 
+        document.documentElement.offsetHeight,
+        document.body.clientHeight, 
+        document.documentElement.clientHeight
+      );
+      const winHeight = window.innerHeight;
+      const scrollPercent = Math.min(scrollTop / (docHeight - winHeight), 1);
+      
+      updateImagePosition(scrollPercent);
+    };
 
     window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
     setTimeout(handleScroll, 100); // Initial calculation
     
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
   }, [frameUrls.length]);
 
   // Show a loading placeholder until frames are ready
@@ -123,6 +160,7 @@ export function AnimatedBackground() {
           alt="Casa Tigre Background"
           fill
           className="desktop-zoom"
+          style={{ objectPosition: 'center 0%' }}
           priority
         />
         <div className="absolute inset-0 bg-black/30" />

@@ -169,11 +169,17 @@ html {
 @media (min-width: 1024px) {
   .desktop-zoom {
     object-fit: cover !important;
-    object-position: center 30% !important;
+    object-position: top center !important;
     width: 100% !important;
     height: 100% !important;
-    transform: scale(1.4) !important;
-    transform-origin: center !important;
+    transform: scale(1.3) !important;
+    transform-origin: top center !important;
+  }
+  
+  /* Background vertical scroll effect for desktop */
+  .animation-frame img {
+    will-change: object-position;
+    transition: none !important; /* Remove transition for direct manipulation */
   }
 }
 
