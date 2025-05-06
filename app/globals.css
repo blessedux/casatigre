@@ -67,33 +67,108 @@ html {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   z-index: 0;
   background-attachment: fixed;
   will-change: transform;
   backface-visibility: hidden;
+  overflow: visible;
 }
 
 .fixed-background img {
-  object-fit: contain;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   object-position: center center;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0;
-  border-radius: 0;
 }
 
-/* Responsive styles for desktop */
-@media (min-width: 1024px) {
-  .fixed-background img, 
+/* Animation frame container - Base styles for mobile */
+.animation-frames-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.animation-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.1s ease-in-out;
+  overflow: hidden;
+}
+
+.animation-frame.visible {
+  opacity: 1;
+}
+
+.animation-frame img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* Tablet styles */
+@media (min-width: 800px) and (max-width: 1199px) {
+  .animation-frames-container,
+  .animation-frame {
+    overflow: visible;
+  }
+
+  .fixed-background img,
   .animation-frame img {
-    object-fit: cover;
-    object-position: center center;
-    width: 100% !important;
-    height: 100% !important;
-    will-change: transform;
-    transform-origin: center center;
+    width: 2000%;
+    height: 2000%;
+    transform: translate(-50%, -50%) scale(0.05);
+    object-fit: contain;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1200px) {
+  .animation-frames-container {
+    left: 5%;
+    width: 90%;
+    overflow: visible;
+  }
+
+  .animation-frame {
+    top: 0;
+    overflow: visible;
+  }
+
+  .fixed-background img,
+  .animation-frame img {
+    width: 8000%;
+    height: 8000%;
+    transform: translate(-50%, -50%) scale(0.005);
+    object-fit: contain;
+  }
+
+  /* Remove glassmorphism effects */
+  .transparent-section,
+  .glass-card {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: none;
   }
 }
 
@@ -121,39 +196,6 @@ html {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Animation frame container */
-.animation-frames-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-.animation-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 0.1s ease-in-out;
-}
-
-.animation-frame.visible {
-  opacity: 1;
-}
-
-.animation-frame img {
-  object-fit: contain;
-  object-position: center center;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0;
-  border-radius: 0;
 }
 
 /* Special class for desktop zoom */
