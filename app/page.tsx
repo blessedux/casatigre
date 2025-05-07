@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -13,8 +15,47 @@ import {
 import { Button } from "@/components/ui/button";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { FadeInSection } from "@/components/FadeInSection";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    // Set initial opacity to 0
+    if (titleRef.current) {
+      gsap.set(titleRef.current, { opacity: 0 });
+    }
+
+    // Create scroll trigger for title fade in/out
+    ScrollTrigger.create({
+      trigger: ".hero-section",
+      start: "top top",
+      end: "bottom top",
+      onUpdate: (self) => {
+        if (titleRef.current) {
+          // Fade in during first 30% of scroll
+          let opacity = 0;
+          if (self.progress <= 0.3) {
+            opacity = self.progress / 0.3; // Fade in
+          } else {
+            opacity = 1; // Stay fully visible
+          }
+          
+          gsap.to(titleRef.current, {
+            opacity: opacity,
+            duration: 0.3,
+            ease: "none"
+          });
+        }
+      }
+    });
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen relative">
       {/* Animated Background with frame sequence */}
@@ -72,13 +113,13 @@ export default function Home() {
 
       <div className="content-overlay">
         {/* Hero Section */}
-        <section className="relative h-screen flex items-center justify-center">
+        <section className="hero-section">
           <div className="container relative z-10 px-4 md:px-6 text-white">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 text-shadow">
+            <div className="max-w-3xl">
+              <h1 ref={titleRef} className="casa-tigre-title">
                 CASA TIGRE
               </h1>
-              <p className="text-lg text-white text-shadow mb-4">
+              <p className="text-lg text-white text-shadow mb-4 mt-8">
                 Tropical paradise 1 hour from Buenos Aires
               </p>
             </div>
@@ -426,6 +467,13 @@ export default function Home() {
             </div>
           </footer>
         </FadeInSection>
+
+        {/* Tall Footer Cover */}
+        <div className="relative h-[150vh] bg-black z-30">
+          <div className="sticky top-0 h-screen flex items-center justify-center">
+            <p className="text-white text-2xl">End of Content</p>
+          </div>
+        </div>
       </div>
     </div>
   );
