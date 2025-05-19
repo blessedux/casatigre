@@ -77,25 +77,14 @@ export function AnimatedBackground() {
       
       // Get current scroll position
       const scrollTop = window.scrollY;
-      const docHeight = Math.max(
-        document.body.scrollHeight, 
-        document.documentElement.scrollHeight,
-        document.body.offsetHeight, 
-        document.documentElement.offsetHeight,
-        document.body.clientHeight, 
-        document.documentElement.clientHeight
-      );
       const winHeight = window.innerHeight;
       
-      // Calculate current scroll percentage (0-1)
-      // This now represents the entire document scroll - from top to bottom
-      const scrollPercent = Math.min(scrollTop / (docHeight - winHeight), 1);
+      // Calculate scroll percentage based on viewport height
+      // This will give us a smoother animation that's tied to the viewport
+      const scrollPercent = Math.min(scrollTop / (winHeight * 2), 1);
       
-      // Use the scroll percentage directly - animate all the way to the bottom of the page
-      // Map the scroll percentage directly to frame index - use the full scroll range
+      // Map the scroll percentage to frame index
       const numFrames = frameUrls.length;
-      
-      // Ensure we reach the last frame when at the bottom of the page
       const frameIndex = Math.min(Math.round(scrollPercent * (numFrames - 1)), numFrames - 1);
       
       // Add subtle downward movement (max 20px) based on scroll
@@ -112,7 +101,7 @@ export function AnimatedBackground() {
       setDebug({
         scrollPercent: Math.round(scrollPercent * 100),
         frameIndex,
-        targetPosition: 100, // Now we target the full page
+        targetPosition: 100,
         originalFrame: frameIndex + 1,
         totalFrames: numFrames
       });

@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { FadeInSection } from "@/components/FadeInSection";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -24,11 +24,26 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const scrollDownRef = useRef<HTMLDivElement>(null);
+  const backgroundRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Set initial opacity to 0
     if (titleRef.current) {
       gsap.set(titleRef.current, { opacity: 0 });
+    }
+    if (subtitleRef.current) {
+      gsap.set(subtitleRef.current, { opacity: 0 });
+    }
+    if (scrollDownRef.current) {
+      gsap.set(scrollDownRef.current, { opacity: 1 });
+    }
+    if (backgroundRef.current) {
+      gsap.set(backgroundRef.current, { 
+        opacity: 1,
+        filter: 'blur(0px)'
+      });
     }
 
     // Create scroll trigger for title fade in/out
@@ -37,19 +52,57 @@ export default function Home() {
       start: "top top",
       end: "bottom top",
       onUpdate: (self) => {
-        if (titleRef.current) {
+        if (titleRef.current && subtitleRef.current && scrollDownRef.current && backgroundRef.current) {
           // Fade in during first 30% of scroll
-          let opacity = 0;
+          let titleOpacity = 0;
+          let subtitleOpacity = 0;
+          let scrollDownOpacity = 1;
+          let backgroundOpacity = 1;
+          let backgroundBlur = 0;
+          
+          // Handle scroll down button visibility - only visible at the very top
+          scrollDownOpacity = self.progress === 0 ? 1 : 0;
+          
           if (self.progress <= 0.3) {
-            opacity = self.progress / 0.3; // Fade in
+            // Initial fade in
+            titleOpacity = self.progress / 0.3;
+            subtitleOpacity = Math.max(0, (self.progress - 0.15) / 0.3);
+          } else if (self.progress >= 0.9) {
+            // Fade out in the last 10% of scroll
+            const fadeOutProgress = (self.progress - 0.9) / 0.1;
+            titleOpacity = 1 - fadeOutProgress;
+            subtitleOpacity = 1 - fadeOutProgress;
+            // Start fading and blurring background in the last 10% of scroll
+            backgroundOpacity = 1 - fadeOutProgress;
+            backgroundBlur = fadeOutProgress * 30; // Max blur of 30px
           } else {
-            opacity = 1; // Stay fully visible
+            // Keep fully visible between 30% and 90%
+            titleOpacity = 1;
+            subtitleOpacity = 1;
           }
           
           gsap.to(titleRef.current, {
-            opacity: opacity,
+            opacity: titleOpacity,
+            duration: 0.3,
+          });
+          
+          gsap.to(subtitleRef.current, {
+            opacity: subtitleOpacity,
             duration: 0.3,
             ease: "none"
+          });
+
+          gsap.to(scrollDownRef.current, {
+            opacity: scrollDownOpacity,
+            duration: 0.1,
+            ease: "none"
+          });
+
+          gsap.to(backgroundRef.current, {
+            opacity: backgroundOpacity,
+            filter: `blur(${backgroundBlur}px)`,
+            duration: 0.3,
+            ease: "power2.out"
           });
         }
       }
@@ -57,57 +110,61 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <div className="flex flex-col min-h-screen relative overflow-hidden">
       {/* Animated Background with frame sequence */}
-      <AnimatedBackground />
+      <div ref={backgroundRef} className="fixed inset-0 z-0">
+        <AnimatedBackground />
+      </div>
 
       {/* Header - Vertical Glassmorphism Sidebar with Icons - now on the right */}
-      <header className="fixed top-6 right-6 z-50 p-2">
-        <div className="flex flex-col h-[75vh] w-[60px] bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-3 shadow-lg">
-          <nav className="flex flex-col items-center gap-8 flex-grow">
+      <header className="fixed top-1/2 -translate-y-1/2 right-6 z-50 p-2">
+        <div className="flex flex-col h-[35vh] w-[60px] bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-3 shadow-lg">
+          <nav className="flex flex-col justify-between h-full">
+            <div className="flex flex-col gap-4">
+              <Link
+                href="#included"
+                className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
+                aria-label="When"
+              >
+                <Calendar className="h-5 w-5 text-white" />
+                <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  When
+                </span>
+              </Link>
+              <Link
+                href="#about"
+                className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
+                aria-label="Where"
+              >
+                <MapPin className="h-5 w-5 text-white" />
+                <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Where
+                </span>
+              </Link>
+              <Link
+                href="#hosts"
+                className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
+                aria-label="Hosts"
+              >
+                <Users className="h-5 w-5 text-white" />
+                <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Hosts
+                </span>
+              </Link>
+            </div>
             <Link
-              href="#included"
-              className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
-              aria-label="When"
+              href="https://lu.ma/62qx28n9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 bg-[#e67e22] hover:bg-[#d35400] text-white rounded-full flex items-center justify-center group relative transition-colors"
+              aria-label="Join Waitlist"
             >
-              <Calendar className="h-5 w-5 text-white" />
+              <BookOpen className="h-5 w-5" />
               <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                When
-              </span>
-            </Link>
-            <Link
-              href="#about"
-              className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
-              aria-label="Where"
-            >
-              <MapPin className="h-5 w-5 text-white" />
-              <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                Where
-              </span>
-            </Link>
-            <Link
-              href="#hosts"
-              className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
-              aria-label="Hosts"
-            >
-              <Users className="h-5 w-5 text-white" />
-              <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                Hosts
+                Join Waitlist
               </span>
             </Link>
           </nav>
-          <Link
-            href="https://lu.ma/62qx28n9"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-auto p-2.5 bg-[#e67e22] hover:bg-[#d35400] text-white rounded-full flex items-center justify-center group relative transition-colors"
-            aria-label="Join Waitlist"
-          >
-            <BookOpen className="h-5 w-5" />
-            <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              Join Waitlist
-            </span>
-          </Link>
         </div>
       </header>
 
@@ -119,24 +176,12 @@ export default function Home() {
               <h1 ref={titleRef} className="casa-tigre-title">
                 CASA TIGRE
               </h1>
-              <p className="text-lg text-white text-shadow mb-4 mt-8">
+              <p ref={subtitleRef} className="casa-tigre-subtitle">
                 Tropical paradise 1 hour from Buenos Aires
               </p>
             </div>
           </div>
-          <div className="absolute bottom-16 w-full flex flex-col items-center justify-center gap-8 z-10">
-            <Button
-              className="bg-[#e67e22] hover:bg-[#d35400] text-white text-lg px-8 py-6"
-              asChild
-            >
-              <Link
-                href="https://lu.ma/62qx28n9"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Join Waitlist
-              </Link>
-            </Button>
+          <div ref={scrollDownRef} className="fixed bottom-16 w-full flex flex-col items-center justify-center gap-8 z-10">
             <Link
               href="#about"
               className="flex flex-col items-center gap-2 text-white animate-bounce"
@@ -179,7 +224,7 @@ export default function Home() {
                 <div className="max-w-2xl">
                   <div className="mb-6 rounded-xl overflow-hidden shadow-lg relative">
                     <Image
-                      src="/delta.jpg"
+                      src="/delta_ghibli.png"
                       alt="Paraná Delta"
                       width={800}
                       height={500}
@@ -457,21 +502,20 @@ export default function Home() {
           </section>
         </FadeInSection>
 
-        {/* Footer */}
-        <FadeInSection>
-          <footer className="relative py-12 bg-[#2c3e50]/60 backdrop-blur-md text-white my-8 mx-4 md:mx-8 rounded-2xl">
-            <div className="container px-4 md:px-6 text-center">
-              <p className="text-sm text-gray-200 text-shadow">
-                © {new Date().getFullYear()} CASA Tigre. All rights reserved.
-              </p>
-            </div>
-          </footer>
-        </FadeInSection>
-
         {/* Tall Footer Cover */}
         <div className="relative h-[150vh] bg-black z-30">
           <div className="sticky top-0 h-screen flex items-center justify-center">
-            <p className="text-white text-2xl">End of Content</p>
+            <div className="absolute inset-0">
+              <Image
+                src="/casatigrebackground1.png"
+                alt="Casa Tigre Background"
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-black/40" />
+            </div>
+            <p className="text-white text-2xl relative z-10">End of Content</p>
           </div>
         </div>
       </div>
