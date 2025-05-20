@@ -29,6 +29,19 @@ export default function Home() {
   const scrollDownRef = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLDivElement>(null);
   const whereSectionRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    ctaRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToWhere = () => {
+    window.scrollTo({
+      top: 327,
+      behavior: 'smooth'
+    });
+  };
 
   useEffect(() => {
     // Set initial opacity to 1 for title and subtitle
@@ -59,81 +72,76 @@ export default function Home() {
     const galleryImages = document.querySelectorAll('.gallery-image');
     const totalImages = galleryImages.length;
     
-    galleryImages.forEach((image, index) => {
-      gsap.set(image, { opacity: 0 });
+    console.log('Total gallery images found:', totalImages);
+    galleryImages.forEach((img, index) => {
+      console.log(`Image ${index} initial state:`, {
+        opacity: (img as HTMLElement).style.opacity,
+        zIndex: (img as HTMLElement).style.zIndex,
+        src: (img as HTMLImageElement).src
+      });
     });
 
-    // Show first image initially
-    gsap.set(galleryImages[0], { opacity: 1 });
-
-    // Function to check if device is mobile
-    const isMobile = () => window.innerWidth <= 768;
-
-    // Create scroll trigger for gallery images with mobile-specific behavior
-    ScrollTrigger.create({
+    // Create scroll trigger for gallery images
+    const galleryTrigger = ScrollTrigger.create({
       trigger: ".gallery-container",
-      start: isMobile() ? "top center" : "top center",
+      start: "top center",
       end: "bottom center",
       scrub: 1,
       onUpdate: (self) => {
-        if (isMobile()) {
-          const progress = self.progress;
-          if (progress > 0) {
-            const currentIndex = Math.min(
-              Math.floor(progress * totalImages),
-              totalImages - 1
-            );
-            const nextIndex = Math.min(currentIndex + 1, totalImages - 1);
-            const localProgress = (progress * totalImages) % 1;
+        const progress = self.progress;
+        const currentIndex = Math.min(
+          Math.floor(progress * totalImages),
+          totalImages - 1
+        );
+        const nextIndex = Math.min(currentIndex + 1, totalImages - 1);
+        const localProgress = (progress * totalImages) % 1;
 
-            gsap.to(galleryImages[currentIndex], {
-              opacity: 1 - localProgress,
-              duration: 0.1
-            });
+        console.log(`Scroll update - Current: ${currentIndex}, Next: ${nextIndex}, Progress: ${localProgress}`);
 
-            if (nextIndex !== currentIndex) {
-              gsap.to(galleryImages[nextIndex], {
-                opacity: localProgress,
-                duration: 0.1
-              });
-            }
-          } else {
-            gsap.set(galleryImages[0], { opacity: 1 });
-            galleryImages.forEach((image, index) => {
-              if (index !== 0) gsap.set(image, { opacity: 0 });
-            });
-          }
-        } else {
-          const progress = self.progress;
-          const currentIndex = Math.min(
-            Math.floor(progress * totalImages),
-            totalImages - 1
-          );
-          const nextIndex = Math.min(currentIndex + 1, totalImages - 1);
-          const localProgress = (progress * totalImages) % 1;
+        // Fade out current image
+        const currentImage = galleryImages[currentIndex] as HTMLElement;
+        if (currentImage) {
+          currentImage.style.opacity = (1 - localProgress).toString();
+          console.log(`Fading out image ${currentIndex} to opacity ${1 - localProgress}`);
+        }
 
-          gsap.to(galleryImages[currentIndex], {
-            opacity: 1 - localProgress,
-            duration: 0.1
-          });
-
-          if (nextIndex !== currentIndex) {
-            gsap.to(galleryImages[nextIndex], {
-              opacity: localProgress,
-              duration: 0.1
-            });
+        // Fade in next image
+        if (nextIndex !== currentIndex) {
+          const nextImage = galleryImages[nextIndex] as HTMLElement;
+          if (nextImage) {
+            nextImage.style.opacity = localProgress.toString();
+            console.log(`Fading in image ${nextIndex} to opacity ${localProgress}`);
           }
         }
       }
     });
 
-    // Add resize listener to update mobile check
-    window.addEventListener('resize', () => {
+    // Add resize listener to update mobile check and refresh ScrollTrigger
+    const handleResize = () => {
+      console.log('Window resized, refreshing ScrollTrigger');
       ScrollTrigger.refresh();
-    });
+      galleryTrigger.refresh();
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Force a refresh after a short delay to ensure everything is properly initialized
+    setTimeout(() => {
+      console.log('Forcing ScrollTrigger refresh');
+      ScrollTrigger.refresh();
+      galleryTrigger.refresh();
+      
+      // Log final state of all images
+      galleryImages.forEach((img, index) => {
+        console.log(`Image ${index} final state:`, {
+          opacity: (img as HTMLElement).style.opacity,
+          zIndex: (img as HTMLElement).style.zIndex,
+          src: (img as HTMLImageElement).src
+        });
+      });
+    }, 1000);
 
     // Create scroll trigger for Where section scaling and sliding
-    ScrollTrigger.create({
+    const whereTrigger = ScrollTrigger.create({
       trigger: "#about",
       start: "top bottom",
       end: "center center",
@@ -147,7 +155,8 @@ export default function Home() {
               y: 100 - (slideProgress * 100), // Slide from 100px to 0px
               scale: 0.8, // Keep scale constant during slide
               duration: 0.1,
-              ease: "none"
+              ease: "none",
+              overwrite: true
             });
           }
           // Second phase: scale up (0.5 to 1 progress)
@@ -157,7 +166,8 @@ export default function Home() {
               y: 0, // Keep position constant
               scale: 0.8 + (scaleProgress * 0.7), // Scale from 0.8 to 1.5
               duration: 0.1,
-              ease: "none"
+              ease: "none",
+              overwrite: true
             });
           }
         }
@@ -165,7 +175,7 @@ export default function Home() {
     });
 
     // Original scroll trigger for title fade in/out
-    ScrollTrigger.create({
+    const titleTrigger = ScrollTrigger.create({
       trigger: ".hero-section",
       start: "top top",
       end: "bottom top",
@@ -199,7 +209,6 @@ export default function Home() {
 
           if (self.progress > 1) {
             const extraScroll = self.progress - 1;
-            backgroundScale = Math.max(0.3, 1 - (extraScroll * 0.7));
             backgroundX = extraScroll * 20;
             backgroundY = extraScroll * 20;
             backgroundOpacity = 1;
@@ -209,18 +218,21 @@ export default function Home() {
           gsap.to(titleRef.current, {
             opacity: titleOpacity,
             duration: 0.3,
+            overwrite: true
           });
 
           gsap.to(subtitleRef.current, {
             opacity: subtitleOpacity,
             duration: 0.3,
-            ease: "none"
+            ease: "none",
+            overwrite: true
           });
 
           gsap.to(scrollDownRef.current, {
             opacity: scrollDownOpacity,
             duration: 0.1,
-            ease: "none"
+            ease: "none",
+            overwrite: true
           });
 
           gsap.to(backgroundRef.current, {
@@ -231,11 +243,45 @@ export default function Home() {
             y: backgroundY,
             duration: 0.3,
             ease: "power2.out",
-            transformOrigin: "center center"
+            transformOrigin: "center center",
+            overwrite: true
           });
         }
       }
     });
+
+    // Add immediate check for image loading
+    const checkImages = () => {
+      const images = document.querySelectorAll('.gallery-image');
+      console.log('Initial image check:', {
+        totalImages: images.length,
+        images: Array.from(images).map(img => ({
+          src: (img as HTMLImageElement).src,
+          complete: (img as HTMLImageElement).complete,
+          naturalWidth: (img as HTMLImageElement).naturalWidth,
+          naturalHeight: (img as HTMLImageElement).naturalHeight,
+          style: {
+            opacity: (img as HTMLElement).style.opacity,
+            zIndex: (img as HTMLElement).style.zIndex,
+            position: (img as HTMLElement).style.position,
+            visibility: (img as HTMLElement).style.visibility
+          }
+        }))
+      });
+    };
+
+    // Check immediately and after a short delay
+    checkImages();
+    setTimeout(checkImages, 1000);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      galleryTrigger.kill();
+      whereTrigger.kill();
+      titleTrigger.kill();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
   }, []);
 
   return (
@@ -250,8 +296,8 @@ export default function Home() {
         <div className="flex flex-col h-[35vh] w-[60px] bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl p-3 shadow-lg">
           <nav className="flex flex-col justify-between h-full">
             <div className="flex flex-col gap-4">
-              <Link
-                href="#about"
+              <button
+                onClick={scrollToWhere}
                 className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
                 aria-label="Where"
               >
@@ -259,7 +305,7 @@ export default function Home() {
                 <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   Where is it?
                 </span>
-              </Link>
+              </button>
               <Link
                 href="#included"
                 className="p-1.5 rounded-full hover:bg-white/30 transition-colors group relative"
@@ -281,10 +327,8 @@ export default function Home() {
                 </span>
               </Link>
             </div>
-            <Link
-              href="https://lu.ma/62qx28n9"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={scrollToBottom}
               className="p-2.5 bg-[#e67e22] hover:bg-[#d35400] text-white rounded-full flex items-center justify-center group relative transition-colors"
               aria-label="Join Waitlist"
             >
@@ -292,14 +336,14 @@ export default function Home() {
               <span className="absolute right-full mr-2 px-2 py-1 bg-black/70 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Join Waitlist
               </span>
-            </Link>
+            </button>
           </nav>
         </div>
       </header>
 
       <div className="content-overlay">
         {/* Hero Section */}
-        <section className="hero-section">
+        <section className="hero-section relative w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw]">
           <div className="container relative z-10 px-4 md:px-6 text-white">
             <div className="max-w-3xl">
               <h1 ref={titleRef} className="casa-tigre-title">
@@ -330,8 +374,9 @@ export default function Home() {
               <div className="flex justify-center">
                 <div className="max-w-4xl w-full">
                   {/* Image Gallery */}
-                  <div className="relative h-[60vh] w-full rounded-xl overflow-hidden">
-                    <div className="absolute inset-0 gallery-container">
+                  <div className="relative h-[60vh] w-full rounded-xl overflow-hidden bg-black">
+                    <div className="gallery-container h-[60vh] w-full relative">
+                      {/* First image - always visible initially */}
                       <div className="absolute inset-0">
                         <Image
                           src="/delta_ghibli.png"
@@ -339,74 +384,62 @@ export default function Home() {
                           fill
                           className="object-cover gallery-image"
                           priority
+                          sizes="(max-width: 768px) 100vw, 100vw"
+                          onLoad={(e) => {
+                            console.log('First image loaded:', e.target);
+                            const img = e.target as HTMLImageElement;
+                            img.style.opacity = '1';
+                            img.style.position = 'absolute';
+                            img.style.top = '0';
+                            img.style.left = '0';
+                            img.style.width = '100%';
+                            img.style.height = '100%';
+                            img.style.objectFit = 'cover';
+                            img.style.zIndex = '7';
+                          }}
+                          onError={(e) => {
+                            console.error('First image failed to load:', e);
+                            const img = e.target as HTMLImageElement;
+                            console.log('Image src:', img.src);
+                          }}
                         />
                       </div>
-                      <div className="absolute inset-0">
-                        <Image
-                          src="/backyard_ghibli.png"
-                          alt="Backyard"
-                          fill
-                          className="object-cover gallery-image"
-                        />
-                      </div>
-                      <div className="absolute inset-0">
-                        <Image
-                          src="/livingroom_ghibli.png"
-                          alt="Living Room"
-                          fill
-                          className="object-cover gallery-image"
-                        />
-                      </div>
-                      <div className="absolute inset-0">
-                        <Image
-                          src="/kitchen_ghibli.png"
-                          alt="Kitchen"
-                          fill
-                          className="object-cover gallery-image"
-                        />
-                      </div>
-                      <div className="absolute inset-0">
-                        <Image
-                          src="/kitchen2_ghibli.png"
-                          alt="Kitchen 2"
-                          fill
-                          className="object-cover gallery-image"
-                        />
-                      </div>
-                      <div className="absolute inset-0">
-                        <Image
-                          src="/room_ghibli.png"
-                          alt="Room"
-                          fill
-                          className="object-cover gallery-image"
-                        />
-                      </div>
-                      <div className="absolute inset-0">
-                        <Image
-                          src="/hammoc_ghibli.png"
-                          alt="Hammock"
-                          fill
-                          className="object-cover gallery-image"
-                        />
-                      </div>
-                    </div>
-                    {/* Overlay Text */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-                      <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center text-white text-shadow">
-                        Where is it?
-                      </h2>
-                      <p className="text-lg text-white leading-relaxed text-shadow text-center max-w-md mb-4">
-                        Riverside mansion hidden <br></br>in the lush Paraná Delta
-                        islands
-                      </p>
-                      <Link
-                        href="https://www.google.com/maps/place/Tigre,+Buenos+Aires,+Argentina"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-white hover:text-white/80 transition-colors pointer-events-auto"
-                      >
-                        <MapPin className="h-5 w-5" />
-                      </Link>
+                      {/* Other images */}
+                      {[
+                        { src: '/backyard_ghibli.png', alt: 'Backyard', zIndex: 6 },
+                        { src: '/livingroom_ghibli.png', alt: 'Living Room', zIndex: 5 },
+                        { src: '/kitchen_ghibli.png', alt: 'Kitchen', zIndex: 4 },
+                        { src: '/kitchen2_ghibli.png', alt: 'Kitchen 2', zIndex: 3 },
+                        { src: '/room_ghibli.png', alt: 'Room', zIndex: 2 },
+                        { src: '/hammoc_ghibli.png', alt: 'Hammock', zIndex: 1 }
+                      ].map((img, index) => (
+                        <div key={img.src} className="absolute inset-0">
+                          <Image
+                            src={img.src}
+                            alt={img.alt}
+                            fill
+                            className="object-cover gallery-image"
+                            sizes="(max-width: 768px) 100vw, 100vw"
+                            onLoad={(e) => {
+                              console.log(`Image ${index + 2} loaded:`, e.target);
+                              const img = e.target as HTMLImageElement;
+                              img.style.opacity = '0';
+                              img.style.position = 'absolute';
+                              img.style.top = '0';
+                              img.style.left = '0';
+                              img.style.width = '100%';
+                              img.style.height = '100%';
+                              img.style.objectFit = 'cover';
+                              img.style.zIndex = (6 - index).toString();
+                            }}
+                            onError={(e) => {
+                              console.error(`Image ${index + 2} failed to load:`, e);
+                              const img = e.target as HTMLImageElement;
+                              console.log('Image src:', img.src);
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -417,7 +450,7 @@ export default function Home() {
 
         {/* Footer Section */}
         <FadeInSection>
-          <div className="relative h-[180vh] md:h-[220vh] w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw]">
+          <div ref={footerRef} className="relative h-[180vh] md:h-[220vh] w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw]">
             <div className="absolute inset-0">
               <Image
                 src="/casatigrebackground1.png"
@@ -586,7 +619,7 @@ export default function Home() {
             </section>
 
             {/* Join Waitlist Button */}
-            <div className="relative z-10 w-full flex justify-center pb-24 md:pb-12 mt-32">
+            <div ref={ctaRef} className="relative z-10 w-full flex justify-center pb-24 md:pb-12 mt-32">
               <Link
                 href="https://lu.ma/62qx28n9"
                 target="_blank"

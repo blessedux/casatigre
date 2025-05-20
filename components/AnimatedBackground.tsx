@@ -1,160 +1,285 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 export function AnimatedBackground() {
-  const [currentFrame, setCurrentFrame] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [frameUrls, setFrameUrls] = useState<string[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [debug, setDebug] = useState({ 
-    scrollPercent: 0, 
-    frameIndex: 0, 
-    targetPosition: 0, 
-    originalFrame: 0,
-    totalFrames: 0
-  });
+  const [isError, setIsError] = useState(false);
+  const [frameUrls, setFrameUrls] = useState<string[]>([]);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const lastFrameRef = useRef<number>(0);
+  const rafRef = useRef<number>(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   
-  // Reference to the schedule section for calculating scroll target
-  const scheduleRef = useRef<HTMLElement | null>(null);
-
+  // Handle client-side mounting
   useEffect(() => {
-    // Find the schedule section to use as animation end target
-    scheduleRef.current = document.getElementById('schedule');
-    
-    // Based on the file listing, we have frames from 1 to 365
-    const firstFrameNumber = 1;
+    setIsMounted(true);
+  }, []);
+
+  // Generate frame URLs
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const firstFrameNumber = 266;
     const lastFrameNumber = 365;
-    
-    // Generate the array of frame URLs
     const urls: string[] = [];
+    
     for (let i = firstFrameNumber; i <= lastFrameNumber; i++) {
-      // Format frame number with leading zeros to match filename pattern (4 digits)
       const frameNumber = i.toString().padStart(4, '0');
       urls.push(`/casatigre_hero_webp/frame_${frameNumber}.webp`);
     }
     
+    console.log('Generated frame URLs:', urls);
     setFrameUrls(urls);
-    
-    // Log how many frames we're using
-    console.log(`Animation setup: Using ${urls.length} frames from ${firstFrameNumber} to ${lastFrameNumber}`);
-    
-    // Preload only the first few frames to reduce initial load time
-    const preloadImages = async () => {
-      console.log('Preloading initial frames...');
-      const preloadCount = 5;
-      const imagePromises = urls.slice(0, preloadCount).map((url) => {
-        return new Promise((resolve) => {
-          const img = new globalThis.Image();
-          img.onload = () => resolve(true);
-          img.onerror = () => {
-            console.log(`Failed to load: ${url}`);
-            resolve(false);
-          };
-          img.src = url;
-        });
-      });
-      
-      await Promise.all(imagePromises);
-      console.log(`Preloaded ${preloadCount} frames successfully`);
-      setIsLoading(false);
-    };
-    
-    preloadImages();
-  }, []);
+  }, [isMounted]);
 
+  // Initialize canvas and draw first frame
   useEffect(() => {
-    let lastScrollTime = 0;
-    const throttleTime = 50;
-    
-    const handleScroll = () => {
-      const now = Date.now();
-      if (now - lastScrollTime < throttleTime) return;
-      lastScrollTime = now;
-      
-      if (!containerRef.current || frameUrls.length === 0) return;
-      
-      // Get current scroll position
-      const scrollTop = window.scrollY;
-      const winHeight = window.innerHeight;
-      
-      // Calculate scroll percentage based on viewport height
-      // This will give us a smoother animation that's tied to the viewport
-      const scrollPercent = Math.min(scrollTop / (winHeight * 2), 1);
-      
-      // Map the scroll percentage to frame index
-      const numFrames = frameUrls.length;
-      const frameIndex = Math.min(Math.round(scrollPercent * (numFrames - 1)), numFrames - 1);
-      
-      // Add subtle downward movement (max 20px) based on scroll
-      if (containerRef.current && window.innerWidth >= 1024) {
-        const imageElement = containerRef.current.querySelector('img');
-        if (imageElement) {
-          // Move image down by 0-20px based on scroll percentage
-          const moveDown = Math.round(scrollPercent * 20);
-          imageElement.style.transform = `translateY(${moveDown}px) scale(1.05)`;
-        }
-      }
-      
-      setCurrentFrame(frameIndex);
-      setDebug({
-        scrollPercent: Math.round(scrollPercent * 100),
-        frameIndex,
-        targetPosition: 100,
-        originalFrame: frameIndex + 1,
-        totalFrames: numFrames
-      });
-    };
+    if (!isMounted) return;
 
-    window.addEventListener("scroll", handleScroll);
-    setTimeout(handleScroll, 100); // Initial calculation
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.error('Canvas element not found');
+      return;
+    }
+
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) {
+      console.error('Could not get canvas context');
+      return;
+    }
+
+    console.log('Canvas initialized successfully');
+    ctxRef.current = ctx;
+    
+    // Set canvas size to match window size
+    const updateCanvasSize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      console.log('Canvas size updated:', { width: canvas.width, height: canvas.height });
+    };
+    
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
     
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('resize', updateCanvasSize);
     };
-  }, [frameUrls.length]);
+  }, [isMounted]);
 
-  // Show a loading placeholder until frames are ready
-  if (isLoading || frameUrls.length === 0) {
+  // Preload images and draw first frame
+  const preloadImages = useCallback(async () => {
+    if (!isMounted || frameUrls.length === 0) {
+      console.log('No frame URLs available for preloading');
+      return;
+    }
+
+    console.log('Starting image preload for', frameUrls.length, 'frames');
+    const promises = frameUrls.map((url, index) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          console.log(`Loaded frame ${index + 1}:`, {
+            url,
+            width: img.width,
+            height: img.height,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight
+          });
+          imagesRef.current[index] = img;
+          
+          // Draw first frame immediately when it loads
+          if (index === 0 && ctxRef.current && canvasRef.current) {
+            drawFrame(0);
+          }
+          
+          resolve(true);
+        };
+        img.onerror = (error) => {
+          console.error(`Failed to load frame ${index + 1}:`, {
+            url,
+            error
+          });
+          resolve(false);
+        };
+        img.src = url;
+      });
+    });
+
+    try {
+      const results = await Promise.all(promises);
+      const successCount = results.filter(Boolean).length;
+      console.log(`Preload complete. Successfully loaded ${successCount} of ${frameUrls.length} frames`);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error during preload:', error);
+      setIsError(true);
+    }
+  }, [frameUrls, isMounted]);
+
+  // Initial preload
+  useEffect(() => {
+    if (!isMounted) return;
+    preloadImages();
+  }, [preloadImages, isMounted]);
+
+  // Draw current frame
+  const drawFrame = useCallback((frameIndex: number) => {
+    if (!isMounted) return;
+
+    const ctx = ctxRef.current;
+    const canvas = canvasRef.current;
+    if (!ctx || !canvas) {
+      console.error('Cannot draw frame: canvas or context not available');
+      return;
+    }
+
+    const img = imagesRef.current[frameIndex];
+    if (!img) {
+      console.error(`Cannot draw frame ${frameIndex}: image not loaded`);
+      return;
+    }
+
+    // Clear canvas with black
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Calculate dimensions to maintain aspect ratio while ensuring full coverage
+    const scale = Math.max(
+      canvas.width / img.width,
+      canvas.height / img.height
+    ) * 1.1; // Slightly larger than viewport to prevent edges
+
+    // Center the image
+    const x = (canvas.width - img.width * scale) / 2;
+    const y = (canvas.height - img.height * scale) / 2;
+
+    console.log(`Drawing frame ${frameIndex}:`, {
+      canvasSize: { width: canvas.width, height: canvas.height },
+      imageSize: { width: img.width, height: img.height },
+      scale,
+      position: { x, y }
+    });
+
+    // Draw image
+    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+  }, [isMounted]);
+
+  // Scroll handler
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const handleScroll = () => {
+      if (frameUrls.length === 0) {
+        console.log('No frames available for animation');
+        return;
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        const scrollTop = window.scrollY;
+        const winHeight = window.innerHeight;
+        const scrollPercent = Math.min(scrollTop / (winHeight * 2), 1);
+        const numFrames = frameUrls.length;
+        const frameIndex = Math.min(
+          Math.floor(scrollPercent * (numFrames - 1)),
+          numFrames - 1
+        );
+
+        if (frameIndex !== lastFrameRef.current) {
+          console.log(`Scroll update:`, {
+            scrollTop,
+            winHeight,
+            scrollPercent,
+            frameIndex,
+            previousFrame: lastFrameRef.current
+          });
+          lastFrameRef.current = frameIndex;
+          drawFrame(frameIndex);
+        }
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Initial calculation
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [frameUrls.length, drawFrame, isMounted]);
+
+  // Server-side render a placeholder
+  if (!isMounted) {
     return (
-      <div className="fixed-background">
-        <Image
-          src="/casatigre_hero_webp/frame_0001.webp" // Start with frame 1 (4 digits)
-          alt="Casa Tigre Background"
-          fill
-          className="desktop-zoom"
-          style={{ 
-            objectPosition: 'center center',
-            transform: 'scale(1.05)'
+      <div className="fixed-background" style={{ zIndex: -1 }}>
+        <div 
+          className="w-full h-full"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: -1,
+            backgroundColor: '#000',
+            overflow: 'hidden',
           }}
-          priority
         />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-black/30" style={{ zIndex: -1 }} />
       </div>
     );
   }
 
-  // Only render the current frame for performance
-  return (
-    <div className="animation-frames-container" ref={containerRef}>
-      <div className="animation-frame visible">
-        <Image
-          src={frameUrls[currentFrame]}
-          alt={`Animation Frame ${currentFrame + 1}`}
-          fill
-          className="desktop-zoom"
-          style={{ objectPosition: 'center center' }}
-          priority={currentFrame < 5}
+  if (isLoading || isError) {
+    console.log('Rendering loading/error state:', { isLoading, isError });
+    return (
+      <div className="fixed-background" style={{ zIndex: -1 }}>
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: -1,
+            backgroundColor: '#000',
+            overflow: 'hidden',
+          }}
         />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-black/30" style={{ zIndex: -1 }} />
       </div>
-      
-      {/* Debug info - remove in production */}
-      <div className="fixed bottom-4 left-4 bg-black/50 text-white p-2 text-xs z-50 rounded">
-        Scroll: {debug.scrollPercent}% | Frame: {debug.frameIndex} / {debug.totalFrames - 1} | 
-        Target: {debug.targetPosition}% | Original: {debug.originalFrame}
-      </div>
+    );
+  }
+
+  return (
+    <div className="fixed-background" style={{ zIndex: -1 }}>
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: -1,
+          backgroundColor: '#000',
+          overflow: 'hidden',
+        }}
+      />
+      <div className="absolute inset-0 bg-black/30" style={{ zIndex: -1 }} />
     </div>
   );
 } 
