@@ -182,11 +182,11 @@ export default function Home() {
 
           scrollDownOpacity = self.progress === 0 ? 1 : 0;
 
-          if (self.progress <= 0.3) {
+          if (self.progress <= 0.25) {
             titleOpacity = 1;
             subtitleOpacity = 1;
-          } else if (self.progress >= 0.4) {
-            const fadeOutProgress = (self.progress - 0.4) / 0.1;
+          } else if (self.progress >= 0.3) {
+            const fadeOutProgress = (self.progress - 0.3) / 0.15;
             titleOpacity = Math.max(0, 1 - fadeOutProgress);
             subtitleOpacity = Math.max(0, 1 - fadeOutProgress);
             backgroundOpacity = 1;
@@ -430,7 +430,7 @@ export default function Home() {
             </div>
 
             {/* When Section - Moved inside footer */}
-            <section id="included" className="relative z-10 py-8 md:py-12 mx-4 md:mx-8">
+            <section id="included" className="relative z-10 py-8 md:py-12 mx-4 md:mx-8 mt-24">
               <div className="container px-4 md:px-6">
                 <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center text-white text-shadow">
                   When
@@ -586,14 +586,13 @@ export default function Home() {
             </section>
 
             {/* Join Waitlist Button */}
-            <div className="relative z-10 w-full flex justify-center pb-24 md:pb-12">
+            <div className="relative z-10 w-full flex justify-center pb-24 md:pb-12 mt-32">
               <Link
                 href="https://lu.ma/62qx28n9"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#e67e22] hover:bg-[#d35400] text-white rounded-full text-lg font-medium transition-colors shadow-lg hover:shadow-xl"
+                className="inline-flex items-center px-8 py-4 bg-[#e67e22] hover:bg-[#d35400] text-white rounded-full text-lg font-medium transition-colors shadow-lg hover:shadow-xl"
               >
-                <BookOpen className="w-6 h-6" />
                 Join Waitlist
               </Link>
             </div>
