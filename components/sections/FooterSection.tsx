@@ -12,7 +12,7 @@ export const FooterSection = () => {
 
   return (
     <FadeInSection>
-      <div ref={footerRef} className="relative h-[180vh] md:h-[200vh] w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw] mt-[10vh] md:mt-[80vh]">
+      <div ref={footerRef} className="relative h-[220vh] md:h-[240vh] w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw] mt-[10vh] md:mt-[80vh]">
         <div className="absolute inset-0">
           <Image
             src="/casatigrebackground1.png"
@@ -31,7 +31,7 @@ export const FooterSection = () => {
         <HostsSection />
 
         {/* Join Waitlist Button */}
-        <div className="relative z-10 w-full flex flex-col items-center pb-8 md:pb-4 mt-32">
+        <div className="relative z-10 w-full flex flex-col items-center pb-8 md:pb-4 mt-[300px] md:mt-[500px]">
           <Link
             href="https://lu.ma/62qx28n9"
             target="_blank"
@@ -40,28 +40,28 @@ export const FooterSection = () => {
           >
             Join Waitlist
           </Link>
-          
-          {/* Copyright Text */}
-          <div className="text-white/60 text-xs">
-            © 2025 by{" "}
-            <Link
-              href="https://github.com/blessedux"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              @blessedux
-            </Link>
-            {" "}&{" "}
-            <Link
-              href="https://github.com/deca12x"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              @deca12x
-            </Link>
-          </div>
+        </div>
+
+        {/* Copyright Text */}
+        <div className="absolute bottom-[5px] left-1/2 transform -translate-x-1/2 text-white/60 text-[10px] md:text-xs z-10 whitespace-nowrap">
+          © 2025 by{" "}
+          <Link
+            href="https://github.com/blessedux"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors"
+          >
+            @blessedux
+          </Link>
+          {" "}&{" "}
+          <Link
+            href="https://github.com/deca12x"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors"
+          >
+            @deca12x
+          </Link>
         </div>
       </div>
     </FadeInSection>
