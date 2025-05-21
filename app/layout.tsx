@@ -30,21 +30,21 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://casatigre.vercel.app',
     title: 'Casa Tigre - A Web3 Builder\'s Paradise',
-    description: 'Wind down with the crypto fam after Devconnect in our cozy builder retreat residencies. Explore the Paraná Delta by jetski and boat, or chill in our builder retreat residencies.',
+    description: '🌴 Join us for an unforgettable post-Devconnect retreat in the Paraná Delta! Experience the perfect blend of tropical paradise and crypto community vibes. Build, connect, and unwind in our exclusive island house with jetskis, boats, and amazing builder retreat residencies. Only 1 hour from Buenos Aires! 🚀',
     siteName: 'Casa Tigre',
     images: [
       {
         url: '/delta_ghibli.png',
         width: 1200,
         height: 630,
-        alt: 'Casa Tigre - A Web3 Builder\'s Paradise',
+        alt: 'Casa Tigre - A Web3 Builder\'s Paradise in the Paraná Delta',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Casa Tigre - A Web3 Builder\'s Paradise',
-    description: 'Wind down with the crypto fam after Devconnect in our cozy builder retreat residencies. Explore the Paraná Delta by jetski and boat, or chill in our builder retreat residencies.',
+    description: '🌴 Join us for an unforgettable post-Devconnect retreat in the Paraná Delta! Experience the perfect blend of tropical paradise and crypto community vibes. Build, connect, and unwind in our exclusive island house with jetskis, boats, and amazing builder retreat residencies. Only 1 hour from Buenos Aires! 🚀',
     images: ['/delta_ghibli.png'],
   },
 };
