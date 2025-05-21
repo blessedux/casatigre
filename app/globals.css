@@ -250,11 +250,13 @@ html {
   font-weight: normal;
   position: fixed;
   top: 24px;
-  left: 32px;
+  right: 32px;
+  left: auto;
   z-index: 25;
   will-change: opacity;
   pointer-events: none;
   transition: opacity 0.3s ease-out;
+  text-align: right;
 }
 
 .casa-tigre-subtitle {
@@ -265,7 +267,8 @@ html {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   position: fixed;
   top: 120px;
-  left: 32px;
+  right: 32px;
+  left: auto;
   z-index: 25;
   will-change: opacity;
   pointer-events: none;
@@ -273,6 +276,7 @@ html {
   font-weight: 300;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  text-align: right;
 }
 
 @media (min-width: 768px) {
