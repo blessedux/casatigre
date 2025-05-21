@@ -138,6 +138,12 @@ const AnimatedBackgroundClient = () => {
       const results = await Promise.all(promises);
       const successCount = results.filter(Boolean).length;
       logDebug(`Preload complete: ${successCount}/${frameUrls.length} frames loaded`);
+      
+      // Ensure first frame is drawn after all images are loaded
+      if (successCount > 0 && ctxRef.current && canvasRef.current) {
+        drawFrame(0);
+      }
+      
       setIsLoading(false);
     } catch (error) {
       logDebug(`ERROR during preload: ${error}`);
@@ -153,9 +159,8 @@ const AnimatedBackgroundClient = () => {
   // Scroll handler
   useEffect(() => {
     let lastDrawnFrame = 0;
-    let isTransitioning = false;
-    let transitionStartTime = 0;
-    const TRANSITION_DURATION = 100; // ms
+    let lastScrollTop = 0;
+    let scrollDirection = 0;
 
     const handleScroll = () => {
       if (frameUrls.length === 0) {
@@ -167,9 +172,14 @@ const AnimatedBackgroundClient = () => {
         const scrollTop = window.scrollY;
         const winHeight = window.innerHeight;
         
+        // Determine scroll direction
+        scrollDirection = scrollTop > lastScrollTop ? 1 : -1;
+        lastScrollTop = scrollTop;
+        
         // If we're at the top of the page, always show the first frame
         if (scrollTop === 0) {
           drawFrame(0);
+          lastDrawnFrame = 0;
           return;
         }
         
@@ -181,34 +191,21 @@ const AnimatedBackgroundClient = () => {
           numFrames - 1
         );
 
-        // If we're already transitioning, continue the transition
-        if (isTransitioning) {
-          const currentTime = performance.now();
-          const elapsed = currentTime - transitionStartTime;
-          
-          if (elapsed < TRANSITION_DURATION) {
-            // Continue showing the last frame during transition
-            drawFrame(lastDrawnFrame);
-          } else {
-            // Transition complete
-            isTransitioning = false;
-            lastDrawnFrame = targetFrameIndex;
-            drawFrame(targetFrameIndex);
-          }
-        } 
-        // If we're not transitioning and the frame has changed
-        else if (targetFrameIndex !== lastDrawnFrame) {
-          // Start transition
-          isTransitioning = true;
-          transitionStartTime = performance.now();
-          lastDrawnFrame = targetFrameIndex;
+        // Ensure we always have a frame to show
+        if (targetFrameIndex >= 0 && targetFrameIndex < numFrames) {
+          // Draw the current frame
           drawFrame(targetFrameIndex);
+          lastDrawnFrame = targetFrameIndex;
+        } else {
+          // Fallback to last valid frame
+          drawFrame(lastDrawnFrame);
         }
       });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // Initial calculation
+    // Initial draw of first frame
+    handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
