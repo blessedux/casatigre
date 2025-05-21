@@ -213,10 +213,13 @@ export const WhereSection = () => {
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-black/40">
           <div className="text-center max-w-xl">
             <h2 className="text-2xl md:text-3xl font-bold mb-2 text-white text-shadow">
-              Where is it?
+              A Web3 Builder's Paradise
             </h2>
             <p className="text-sm md:text-base text-white/90 text-shadow mb-4">
-              A hidden paradise in the Paraná Delta, just 1 hour from Buenos Aires
+              Wind down with the crypto fam after Devconnect <br></br>in our cozy
+              builder retreat residencies.
+              <br className="hidden md:block" />
+              No pressure, just great vibes - <br></br>only 1 hour from Buenos Aires.
             </p>
             <Link
               href="https://maps.google.com/?q=Tigre,Argentina"

@@ -12,7 +12,7 @@ export const FooterSection = () => {
 
   return (
     <FadeInSection>
-      <div ref={footerRef} className="relative h-[220vh] md:h-[240vh] w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw] mt-[10vh] md:mt-[80vh]">
+      <div ref={footerRef} className="relative h-[220vh] md:h-[240vh] w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw] mt-[5vh] md:mt-[40vh]">
         <div className="absolute inset-0">
           <Image
             src="/casatigrebackground1.png"
