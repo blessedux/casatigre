@@ -11,10 +11,10 @@ export default function Home() {
   const whereRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    const waitlistButton = document.querySelector('a[href="https://lu.ma/62qx28n9"]');
-    if (waitlistButton) {
-      waitlistButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth'
+    });
   };
 
   const scrollToWhere = () => {
