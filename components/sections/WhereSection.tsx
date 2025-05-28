@@ -24,14 +24,14 @@ export const WhereSection = () => {
         width: isDesktop ? "60%" : "100%",
         scale: 0.25,
         x: isDesktop ? "50%" : "0%",
-        xPercent: isDesktop ? -50 : 0
+        xPercent: isDesktop ? -50 : 0,
       });
     }
 
     // Create scroll trigger for gallery images
-    const galleryImages = document.querySelectorAll('.gallery-image');
+    const galleryImages = document.querySelectorAll(".gallery-image");
     const totalImages = galleryImages.length;
-    
+
     const galleryTrigger = ScrollTrigger.create({
       trigger: whereSectionRef.current,
       start: "top 80%",
@@ -39,7 +39,7 @@ export const WhereSection = () => {
       scrub: 0.1,
       onUpdate: (self) => {
         const progress = self.progress;
-        
+
         // Calculate which images to show based on scroll progress
         // Multiply by 2 to ensure we go through all images twice during the scroll
         const imageProgress = progress * 2 * (totalImages - 1);
@@ -64,7 +64,7 @@ export const WhereSection = () => {
         if (nextImage) {
           gsap.set(nextImage, { opacity: localProgress });
         }
-      }
+      },
     });
 
     // Create scroll trigger for gallery scaling and height
@@ -79,20 +79,24 @@ export const WhereSection = () => {
           const isDesktop = window.innerWidth >= 768;
           const targetHeight = isDesktop ? "100vh" : "70vh";
           const targetWidth = isDesktop ? "80%" : "100%";
-          const targetScale = isDesktop ? 0.25 + (progress * 0.75) : 0.5 + (progress * 0.5);
-          
+          const targetScale = isDesktop
+            ? 0.25 + progress * 0.75
+            : 0.5 + progress * 0.5;
+
           gsap.to(galleryRef.current, {
             scale: targetScale,
             height: targetHeight,
             width: targetWidth,
-            marginBottom: isDesktop ? `${progress * 80}vh` : `${progress * 10}vh`,
+            marginBottom: isDesktop
+              ? `${progress * 80}vh`
+              : `${progress * 10}vh`,
             duration: 0.1,
             ease: "none",
             overwrite: true,
-            transformOrigin: isDesktop ? "center center" : "center top"
+            transformOrigin: isDesktop ? "center center" : "center top",
           });
         }
-      }
+      },
     });
 
     // Create scroll trigger for Where section scaling and sliding
@@ -108,16 +112,20 @@ export const WhereSection = () => {
         if (whereSectionRef.current) {
           const progress = self.progress;
           const isDesktop = window.innerWidth >= 768;
-          
+
           if (progress <= 0.5) {
             const slideProgress = progress * 2;
             gsap.to(whereSectionRef.current, {
-              y: isDesktop ? 100 - (slideProgress * 100) : 50 - (slideProgress * 50),
-              scale: isDesktop ? 0.25 + (slideProgress * 0.75) : 0.5 + (slideProgress * 0.5),
+              y: isDesktop
+                ? 100 - slideProgress * 100
+                : 50 - slideProgress * 50,
+              scale: isDesktop
+                ? 0.25 + slideProgress * 0.75
+                : 0.5 + slideProgress * 0.5,
               duration: 0.1,
               ease: "none",
               overwrite: true,
-              transformOrigin: isDesktop ? "center center" : "center top"
+              transformOrigin: isDesktop ? "center center" : "center top",
             });
           } else {
             const scaleProgress = (progress - 0.5) * 2;
@@ -127,11 +135,11 @@ export const WhereSection = () => {
               duration: 0.1,
               ease: "none",
               overwrite: true,
-              transformOrigin: isDesktop ? "center center" : "center top"
+              transformOrigin: isDesktop ? "center center" : "center top",
             });
           }
         }
-      }
+      },
     });
 
     return () => {
@@ -142,8 +150,15 @@ export const WhereSection = () => {
   }, []);
 
   return (
-    <section id="about" ref={whereSectionRef} className="relative w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw]">
-      <div ref={galleryRef} className="relative w-full h-full overflow-hidden mx-auto">
+    <section
+      id="about"
+      ref={whereSectionRef}
+      className="relative w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw]"
+    >
+      <div
+        ref={galleryRef}
+        className="relative w-full h-full overflow-hidden mx-auto"
+      >
         {/* Gallery Images */}
         <div className="absolute inset-0">
           <Image
@@ -216,10 +231,11 @@ export const WhereSection = () => {
               A Web3 Builder's Paradise
             </h2>
             <p className="text-sm md:text-base text-white/90 text-shadow mb-4">
-              Wind down with the crypto fam after Devconnect <br></br>in our cozy
-              builder retreat residencies.
+              Wind down with the crypto fam after Devconnect <br></br>in our
+              cozy builder retreat residencies.
               <br className="hidden md:block" />
-              No pressure, just great vibes - <br></br>only 1 hour from Buenos Aires.
+              No pressure, just great vibes - <br></br>only 1 hour from Buenos
+              Aires.
             </p>
             <Link
               href="https://maps.google.com/?q=Tigre,Argentina"
@@ -234,4 +250,4 @@ export const WhereSection = () => {
       </div>
     </section>
   );
-}; 
+};

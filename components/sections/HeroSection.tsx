@@ -30,7 +30,7 @@ export const HeroSection = () => {
     }
     if (backgroundRef.current) {
       gsap.set(backgroundRef.current, {
-        opacity: 1
+        opacity: 1,
       });
     }
 
@@ -40,12 +40,17 @@ export const HeroSection = () => {
       start: "top top",
       end: "bottom top",
       onUpdate: (self) => {
-        if (titleRef.current && subtitleRef.current && scrollDownRef.current && backgroundRef.current) {
+        if (
+          titleRef.current &&
+          subtitleRef.current &&
+          scrollDownRef.current &&
+          backgroundRef.current
+        ) {
           let titleOpacity = 0;
           let subtitleOpacity = 0;
           let scrollDownOpacity = 1;
           let backgroundOpacity = 1;
-          let backgroundColor = 'rgba(0, 0, 0, 0)';
+          let backgroundColor = "rgba(0, 0, 0, 0)";
 
           scrollDownOpacity = self.progress === 0 ? 1 : 0;
 
@@ -53,7 +58,7 @@ export const HeroSection = () => {
             titleOpacity = 1;
             subtitleOpacity = 1;
             backgroundOpacity = 1;
-            backgroundColor = 'rgba(0, 0, 0, 0)';
+            backgroundColor = "rgba(0, 0, 0, 0)";
           } else if (self.progress >= 0.9) {
             const fadeOutProgress = (self.progress - 0.9) / 0.1;
             titleOpacity = Math.max(0, 1 - fadeOutProgress);
@@ -64,32 +69,32 @@ export const HeroSection = () => {
             titleOpacity = 1;
             subtitleOpacity = 1;
             backgroundOpacity = 1;
-            backgroundColor = 'rgba(0, 0, 0, 0)';
+            backgroundColor = "rgba(0, 0, 0, 0)";
           }
 
           if (self.progress > 1) {
             backgroundOpacity = 1;
-            backgroundColor = 'rgba(34, 139, 34, 0.3)';
+            backgroundColor = "rgba(34, 139, 34, 0.3)";
           }
 
           gsap.to(titleRef.current, {
             opacity: titleOpacity,
             duration: 0.3,
-            overwrite: true
+            overwrite: true,
           });
 
           gsap.to(subtitleRef.current, {
             opacity: subtitleOpacity,
             duration: 0.3,
             ease: "none",
-            overwrite: true
+            overwrite: true,
           });
 
           gsap.to(scrollDownRef.current, {
             opacity: scrollDownOpacity,
             duration: 0.1,
             ease: "none",
-            overwrite: true
+            overwrite: true,
           });
 
           gsap.to(backgroundRef.current, {
@@ -97,10 +102,10 @@ export const HeroSection = () => {
             backgroundColor: backgroundColor,
             duration: 0.3,
             ease: "power2.out",
-            overwrite: true
+            overwrite: true,
           });
         }
-      }
+      },
     });
 
     return () => {
@@ -123,17 +128,22 @@ export const HeroSection = () => {
           </p>
         </div>
       </div>
-      <div ref={scrollDownRef} className="fixed bottom-16 w-full flex flex-col items-center justify-center gap-8 z-10">
-        <Link
-          href="#about"
-          className="flex flex-col items-center gap-2 text-white animate-bounce"
+      <div
+        ref={scrollDownRef}
+        className="fixed bottom-16 w-full flex flex-col items-center justify-center gap-8 z-10"
+      >
+        <button
+          onClick={() => {
+            document
+              .getElementById("footer")
+              ?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="flex flex-col items-center gap-2 text-white animate-bounce cursor-pointer"
         >
-          <span className="text-sm font-medium text-shadow">
-            Scroll Down
-          </span>
+          <span className="text-sm font-medium text-shadow">Join Waitlist</span>
           <ChevronDown className="h-6 w-6" />
-        </Link>
+        </button>
       </div>
     </section>
   );
-}; 
+};

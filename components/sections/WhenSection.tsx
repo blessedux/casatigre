@@ -2,25 +2,67 @@
 
 import Link from "next/link";
 import { Calendar, Globe, Ticket } from "lucide-react";
+import { useRef, useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
 
 export const WhenSection = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top bottom",
+        end: "bottom bottom",
+        scrub: 0.5,
+        pin: true,
+        pinSpacing: true,
+        anticipatePin: 1,
+      },
+    });
+
+    // Create a more dramatic pattern of background changes
+    tl.to(sectionRef.current, { backgroundColor: "rgba(255, 255, 255, 0.05)" })
+      .to(sectionRef.current, { backgroundColor: "rgba(255, 255, 255, 0.2)" })
+      .to(sectionRef.current, { backgroundColor: "rgba(255, 255, 255, 0.1)" })
+      .to(sectionRef.current, { backgroundColor: "rgba(255, 255, 255, 0.3)" })
+      .to(sectionRef.current, { backgroundColor: "rgba(255, 255, 255, 0.15)" })
+      .to(sectionRef.current, { backgroundColor: "rgba(255, 255, 255, 0.05)" });
+
+    return () => {
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, []);
+
   return (
-    <section id="included" className="relative z-10 py-8 md:py-12 mx-4 md:mx-8 mt-24 md:mt-[12%]">
-      <div className="container px-4 md:px-6">
-        <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center text-white text-shadow">
+    <section
+      ref={sectionRef}
+      id="when"
+      className="relative w-[100vw] h-screen flex flex-col items-center justify-center bg-white/10 transition-colors duration-300"
+    >
+      <div className="container px-4 md:px-6 max-w-4xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center text-white text-shadow">
           When
         </h2>
         <div className="max-w-2xl mx-auto">
           <div className="relative">
             {/* Timeline line */}
             <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-white/30"></div>
-            
+
             {/* Devconnect Event */}
-            <div className="relative mb-6 md:mb-8">
+            <div className="relative mb-8 md:mb-12">
               <div className="flex items-center">
                 <div className="w-1/2 pr-4 md:pr-8 text-right">
-                  <h3 className="text-xl font-semibold text-white text-shadow">Devconnect</h3>
-                  <p className="text-white/80 text-shadow">17-22nd Nov</p>
+                  <h3 className="text-xl md:text-2xl font-semibold text-white text-shadow">
+                    Devconnect
+                  </h3>
+                  <p className="text-sm md:text-base text-white/80 text-shadow">
+                    17-22nd Nov
+                  </p>
                 </div>
                 <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
                   <Link
@@ -33,17 +75,23 @@ export const WhenSection = () => {
                   </Link>
                 </div>
                 <div className="w-1/2 pl-4 md:pl-8">
-                  <p className="text-white/80 text-shadow">Buenos Aires, Argentina</p>
+                  <p className="text-sm md:text-base text-white/80 text-shadow">
+                    Buenos Aires, Argentina
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* ETHGlobal Event */}
-            <div className="relative mb-6 md:mb-8">
+            <div className="relative mb-8 md:mb-12">
               <div className="flex items-center">
                 <div className="w-1/2 pr-4 md:pr-8 text-right">
-                  <h3 className="text-xl font-semibold text-white text-shadow">ETHGlobal</h3>
-                  <p className="text-white/80 text-shadow">21-23rd Nov</p>
+                  <h3 className="text-xl md:text-2xl font-semibold text-white text-shadow">
+                    ETHGlobal
+                  </h3>
+                  <p className="text-sm md:text-base text-white/80 text-shadow">
+                    21-23rd Nov
+                  </p>
                 </div>
                 <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
                   <Link
@@ -56,7 +104,9 @@ export const WhenSection = () => {
                   </Link>
                 </div>
                 <div className="w-1/2 pl-4 md:pl-8">
-                  <p className="text-white/80 text-shadow">Buenos Aires, Argentina</p>
+                  <p className="text-sm md:text-base text-white/80 text-shadow">
+                    Buenos Aires, Argentina
+                  </p>
                 </div>
               </div>
             </div>
@@ -65,8 +115,12 @@ export const WhenSection = () => {
             <div className="relative">
               <div className="flex items-center">
                 <div className="w-1/2 pr-4 md:pr-8 text-right">
-                  <h3 className="text-xl font-semibold text-white text-shadow">Casa Tigre</h3>
-                  <p className="text-white/80 text-shadow">24-29th Nov</p>
+                  <h3 className="text-xl md:text-2xl font-semibold text-white text-shadow">
+                    Casa Tigre
+                  </h3>
+                  <p className="text-sm md:text-base text-white/80 text-shadow">
+                    24-29th Nov
+                  </p>
                 </div>
                 <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center">
                   <Link
@@ -79,7 +133,9 @@ export const WhenSection = () => {
                   </Link>
                 </div>
                 <div className="w-1/2 pl-4 md:pl-8">
-                  <p className="text-white/80 text-shadow">Buenos Aires, Argentina</p>
+                  <p className="text-sm md:text-base text-white/80 text-shadow">
+                    Buenos Aires, Argentina
+                  </p>
                 </div>
               </div>
             </div>
@@ -88,4 +144,4 @@ export const WhenSection = () => {
       </div>
     </section>
   );
-}; 
+};

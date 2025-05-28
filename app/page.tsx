@@ -1,40 +1,45 @@
 "use client";
 
-import { useRef } from "react";
-import { Header } from "@/components/sections/Header";
+import { useEffect } from "react";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { WhereSection } from "@/components/sections/WhereSection";
+import { WhenSection } from "@/components/sections/WhenSection";
+import { HostsSection } from "@/components/sections/HostsSection";
 import { FooterSection } from "@/components/sections/FooterSection";
 
 export default function Home() {
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const whereRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // Ensure this runs after the component is fully mounted
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "instant",
+      });
+    }, 0);
 
-  const scrollToBottom = () => {
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth'
-    });
-  };
+    // Also handle the beforeunload event
+    const handleBeforeUnload = () => {
+      window.scrollTo(0, 0);
+    };
 
-  const scrollToWhere = () => {
-    const whereSection = document.getElementById('about');
-    if (whereSection) {
-      whereSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen relative overflow-hidden">
       <div className="content-overlay">
-        {/* Header */}
-        <Header scrollToWhere={scrollToWhere} scrollToBottom={scrollToBottom} />
-
         {/* Hero Section */}
         <HeroSection />
 
         {/* Where Section */}
         <WhereSection />
+
+        {/* When Section */}
+        <WhenSection />
+
+        {/* Hosts Section */}
+        <HostsSection />
 
         {/* Footer Section */}
         <FooterSection />
