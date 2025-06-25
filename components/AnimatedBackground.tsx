@@ -210,9 +210,7 @@ const AnimatedBackgroundClient = () => {
 
   // Scroll handler
   useEffect(() => {
-    let lastDrawnFrame = 0;
-    let lastScrollTop = 0;
-    let scrollDirection = 0;
+    let lastDrawnFrame = -1; // Start at -1 to ensure first frame is always drawn
 
     const handleScroll = () => {
       if (frameUrls.length === 0) {
@@ -226,47 +224,38 @@ const AnimatedBackgroundClient = () => {
         const docHeight = document.documentElement.scrollHeight;
         const maxScroll = docHeight - winHeight;
         
-        // Determine scroll direction
-        scrollDirection = scrollTop > lastScrollTop ? 1 : -1;
-        lastScrollTop = scrollTop;
-        
         // If we're at the top of the page, always show the first frame
         if (scrollTop === 0) {
-          logDebug('At top of page - showing first frame');
-          drawFrame(0);
-          lastDrawnFrame = 0;
+          if (lastDrawnFrame !== 0) {
+            logDebug('At top of page - showing first frame');
+            drawFrame(0);
+            lastDrawnFrame = 0;
+          }
           return;
         }
         
-        // Calculate scroll percentage based on total scrollable distance
+        // Calculate scroll percentage (0 to 1)
         const scrollPercent = Math.min(scrollTop / maxScroll, 1);
         const numFrames = frameUrls.length;
         
-        // Map scroll percentage to frame index, ensuring we use all frames
+        // Create direct linear mapping: scroll 0-100% maps to frames 0-(numFrames-1)
         const targetFrameIndex = Math.min(
-          Math.floor(scrollPercent * (numFrames - 1)),
+          Math.floor(scrollPercent * numFrames),
           numFrames - 1
         );
-
-        logDebug(`Scroll: ${scrollTop}/${maxScroll} (${(scrollPercent * 100).toFixed(1)}%) -> Frame ${targetFrameIndex + 1}/${numFrames}`);
-
-        // Ensure we always have a frame to show
-        if (targetFrameIndex >= 0 && targetFrameIndex < numFrames) {
-          // Draw the current frame
+        
+        // Always update frame if it's different from the last one
+        if (targetFrameIndex !== lastDrawnFrame) {
+          logDebug(`Scroll: ${scrollTop}/${maxScroll} (${(scrollPercent * 100).toFixed(1)}%) -> Frame ${targetFrameIndex + 1}/${numFrames}`);
           drawFrame(targetFrameIndex);
           lastDrawnFrame = targetFrameIndex;
-        } else {
-          // Fallback to last valid frame or first frame
-          const fallbackFrame = lastDrawnFrame >= 0 ? lastDrawnFrame : 0;
-          logDebug(`Using fallback frame: ${fallbackFrame}`);
-          drawFrame(fallbackFrame);
         }
       });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     
-    // Initial draw of first frame - ensure it's always visible
+    // Initial draw of first frame
     setTimeout(() => {
       logDebug('Initial draw of first frame');
       handleScroll();
