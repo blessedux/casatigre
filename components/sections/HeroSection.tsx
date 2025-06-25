@@ -18,7 +18,7 @@ export const HeroSection = () => {
   const backgroundRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Set initial opacity to 1 for title and subtitle
+    // Set initial opacity to 1 for all elements
     if (titleRef.current) {
       gsap.set(titleRef.current, { opacity: 1 });
     }
@@ -30,45 +30,37 @@ export const HeroSection = () => {
     }
     if (backgroundRef.current) {
       gsap.set(backgroundRef.current, {
-        opacity: 1
+        opacity: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0)'
       });
     }
 
-    // Original scroll trigger for title fade in/out
+    // Simplified scroll trigger for title fade in/out
     const titleTrigger = ScrollTrigger.create({
       trigger: ".hero-section",
       start: "top top",
       end: "bottom top",
       onUpdate: (self) => {
         if (titleRef.current && subtitleRef.current && scrollDownRef.current && backgroundRef.current) {
-          let titleOpacity = 0;
-          let subtitleOpacity = 0;
+          let titleOpacity = 1;
+          let subtitleOpacity = 1;
           let scrollDownOpacity = 1;
           let backgroundOpacity = 1;
           let backgroundColor = 'rgba(0, 0, 0, 0)';
 
+          // Always show scroll down at the very top
           scrollDownOpacity = self.progress === 0 ? 1 : 0;
 
-          if (self.progress === 0) {
-            titleOpacity = 1;
-            subtitleOpacity = 1;
-            backgroundOpacity = 1;
-            backgroundColor = 'rgba(0, 0, 0, 0)';
-          } else if (self.progress >= 0.9) {
+          // Keep title and subtitle visible until near the end
+          if (self.progress >= 0.9) {
             const fadeOutProgress = (self.progress - 0.9) / 0.1;
             titleOpacity = Math.max(0, 1 - fadeOutProgress);
             subtitleOpacity = Math.max(0, 1 - fadeOutProgress);
-            backgroundOpacity = 1;
             backgroundColor = `rgba(34, 139, 34, ${fadeOutProgress * 0.3})`;
-          } else {
-            titleOpacity = 1;
-            subtitleOpacity = 1;
-            backgroundOpacity = 1;
-            backgroundColor = 'rgba(0, 0, 0, 0)';
           }
 
+          // Ensure background is always visible
           if (self.progress > 1) {
-            backgroundOpacity = 1;
             backgroundColor = 'rgba(34, 139, 34, 0.3)';
           }
 
@@ -103,8 +95,23 @@ export const HeroSection = () => {
       }
     });
 
+    // Ensure background is visible on initial load
+    const ensureBackgroundVisible = () => {
+      if (backgroundRef.current) {
+        gsap.set(backgroundRef.current, {
+          opacity: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0)'
+        });
+      }
+    };
+
+    // Call immediately and after a short delay to ensure it's visible
+    ensureBackgroundVisible();
+    const timer = setTimeout(ensureBackgroundVisible, 100);
+
     return () => {
       titleTrigger.kill();
+      clearTimeout(timer);
     };
   }, []);
 

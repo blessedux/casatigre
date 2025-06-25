@@ -9,6 +9,7 @@ const AnimatedBackgroundClient = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [frameUrls, setFrameUrls] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const lastFrameRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
@@ -21,25 +22,63 @@ const AnimatedBackgroundClient = () => {
     }
   }, []);
 
-  // Memoize frame URLs generation
+  // Detect mobile vs desktop
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768; // md breakpoint
+      setIsMobile(mobile);
+      logDebug(`Device detected: ${mobile ? 'mobile' : 'desktop'}`);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, [logDebug]);
+
+  // Memoize frame URLs generation based on device type
   const generatedFrameUrls = useMemo(() => {
-    const firstFrameNumber = 266;
-    const lastFrameNumber = 365;
     const urls: string[] = [];
     
-    for (let i = firstFrameNumber; i <= lastFrameNumber; i++) {
-      const frameNumber = i.toString().padStart(4, '0');
-      urls.push(`/casatigre_hero_webp/frame_${frameNumber}.webp`);
+    if (isMobile) {
+      // Mobile frames: 266-365 (100 frames)
+      const firstFrameNumber = 266;
+      const lastFrameNumber = 365;
+      
+      for (let i = firstFrameNumber; i <= lastFrameNumber; i++) {
+        const frameNumber = i.toString().padStart(4, '0');
+        urls.push(`/casatigre_hero_webp/frame_${frameNumber}.webp`);
+      }
+    } else {
+      // Desktop frames: 1-56 (56 frames)
+      const firstFrameNumber = 1;
+      const lastFrameNumber = 56;
+      
+      for (let i = firstFrameNumber; i <= lastFrameNumber; i++) {
+        const frameNumber = i.toString().padStart(4, '0');
+        urls.push(`/casatigre_hero_webp_desktop/frame_${frameNumber}.webp`);
+      }
     }
     
+    logDebug(`Generated ${urls.length} frame URLs for ${isMobile ? 'mobile' : 'desktop'}`);
     return urls;
-  }, []);
+  }, [isMobile, logDebug]);
 
-  // Set frame URLs once on mount
+  // Set frame URLs when device type changes
   useEffect(() => {
-    logDebug(`Generated ${generatedFrameUrls.length} frame URLs`);
+    logDebug(`Setting frame URLs for ${isMobile ? 'mobile' : 'desktop'}`);
     setFrameUrls(generatedFrameUrls);
-  }, [generatedFrameUrls, logDebug]);
+    
+    // Clear existing images when switching device types
+    imagesRef.current = [];
+    lastFrameRef.current = 0;
+    
+    // Reset loading state
+    setIsLoading(true);
+    setIsError(false);
+  }, [generatedFrameUrls, isMobile, logDebug]);
 
   // Initialize canvas
   useEffect(() => {
@@ -110,7 +149,11 @@ const AnimatedBackgroundClient = () => {
       return;
     }
 
-    logDebug(`Starting preload of ${frameUrls.length} frames`);
+    logDebug(`Starting preload of ${frameUrls.length} frames for ${isMobile ? 'mobile' : 'desktop'}`);
+    
+    // Clear existing images before preloading new ones
+    imagesRef.current = [];
+    
     const promises = frameUrls.map((url, index) => {
       return new Promise((resolve) => {
         const img = new Image();
@@ -120,7 +163,7 @@ const AnimatedBackgroundClient = () => {
           
           // Draw first frame immediately when loaded
           if (index === 0 && ctxRef.current && canvasRef.current) {
-            logDebug('Drawing first frame');
+            logDebug('Drawing first frame immediately after load');
             drawFrame(0);
           }
           
@@ -137,11 +180,20 @@ const AnimatedBackgroundClient = () => {
     try {
       const results = await Promise.all(promises);
       const successCount = results.filter(Boolean).length;
-      logDebug(`Preload complete: ${successCount}/${frameUrls.length} frames loaded`);
+      logDebug(`Preload complete: ${successCount}/${frameUrls.length} frames loaded for ${isMobile ? 'mobile' : 'desktop'}`);
       
       // Ensure first frame is drawn after all images are loaded
       if (successCount > 0 && ctxRef.current && canvasRef.current) {
+        logDebug('Ensuring first frame is drawn after preload');
         drawFrame(0);
+        
+        // Double-check visibility after a short delay
+        setTimeout(() => {
+          if (ctxRef.current && canvasRef.current) {
+            logDebug('Double-checking first frame visibility');
+            drawFrame(0);
+          }
+        }, 100);
       }
       
       setIsLoading(false);
@@ -149,7 +201,7 @@ const AnimatedBackgroundClient = () => {
       logDebug(`ERROR during preload: ${error}`);
       setIsError(true);
     }
-  }, [frameUrls, drawFrame, logDebug]);
+  }, [frameUrls, drawFrame, logDebug, isMobile]);
 
   // Initial preload
   useEffect(() => {
@@ -171,6 +223,8 @@ const AnimatedBackgroundClient = () => {
       rafRef.current = requestAnimationFrame(() => {
         const scrollTop = window.scrollY;
         const winHeight = window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+        const maxScroll = docHeight - winHeight;
         
         // Determine scroll direction
         scrollDirection = scrollTop > lastScrollTop ? 1 : -1;
@@ -178,18 +232,23 @@ const AnimatedBackgroundClient = () => {
         
         // If we're at the top of the page, always show the first frame
         if (scrollTop === 0) {
+          logDebug('At top of page - showing first frame');
           drawFrame(0);
           lastDrawnFrame = 0;
           return;
         }
         
-        // Make the animation more sensitive by reducing the scroll distance needed
-        const scrollPercent = Math.min(scrollTop / (winHeight * 1.2), 1);
+        // Calculate scroll percentage based on total scrollable distance
+        const scrollPercent = Math.min(scrollTop / maxScroll, 1);
         const numFrames = frameUrls.length;
+        
+        // Map scroll percentage to frame index, ensuring we use all frames
         const targetFrameIndex = Math.min(
           Math.floor(scrollPercent * (numFrames - 1)),
           numFrames - 1
         );
+
+        logDebug(`Scroll: ${scrollTop}/${maxScroll} (${(scrollPercent * 100).toFixed(1)}%) -> Frame ${targetFrameIndex + 1}/${numFrames}`);
 
         // Ensure we always have a frame to show
         if (targetFrameIndex >= 0 && targetFrameIndex < numFrames) {
@@ -197,15 +256,21 @@ const AnimatedBackgroundClient = () => {
           drawFrame(targetFrameIndex);
           lastDrawnFrame = targetFrameIndex;
         } else {
-          // Fallback to last valid frame
-          drawFrame(lastDrawnFrame);
+          // Fallback to last valid frame or first frame
+          const fallbackFrame = lastDrawnFrame >= 0 ? lastDrawnFrame : 0;
+          logDebug(`Using fallback frame: ${fallbackFrame}`);
+          drawFrame(fallbackFrame);
         }
       });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    // Initial draw of first frame
-    handleScroll();
+    
+    // Initial draw of first frame - ensure it's always visible
+    setTimeout(() => {
+      logDebug('Initial draw of first frame');
+      handleScroll();
+    }, 50);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);

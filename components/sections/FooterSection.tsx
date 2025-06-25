@@ -13,16 +13,7 @@ export const FooterSection = () => {
   return (
     <FadeInSection>
       <div ref={footerRef} className="relative h-[220vh] md:h-[240vh] w-[100vw] md:w-[100vw] -ml-[0vw] md:-ml-[0vw] mt-[5vh] md:mt-[40vh]">
-        <div className="absolute inset-0">
-          <Image
-            src="/casatigrebackground1.png"
-            alt="Casa Tigre Background"
-            fill
-            className="object-cover object-top"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/40" />
-        </div>
+        {/* Background image removed */}
 
         {/* When Section */}
         <WhenSection />
